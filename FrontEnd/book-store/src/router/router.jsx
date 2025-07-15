@@ -1,22 +1,60 @@
+import { Routes, Route } from "react-router-dom";
+import Login from "../pages/Login";
+import RegistrationForm from "../pages/Registration";
+import Dashboard from "../pages/dashboard";
+import AddBook from "../pages/AddBook";
+import EditBook from "../pages/EditBook";
+import Profile from "../pages/Profile";
+import EditProfile from "../pages/EditProfile";
+import ProtectedRoute from "../router/ProtectedRoute"; // 👈 import this
 
-import { Routes ,Router,Route} from "react-router"
-import Login from '../Book/login/login'
-import RegistrationForm from '../Book/signup/registration'
-import Dashboard from '../Dashboard/dashboard'
-import AddBook from "../Book/AddBook"
-import EditBook from "../EditBook"
 const UserRoutes = () => {
   return (
-    <div>
-      <Routes>
-        <Route path='/login' element={<Login/>} />
-        <Route path='/' element={<RegistrationForm/>} />
-        <Route path='/dashboard' element={<Dashboard />} />
-        <Route path="/addbook" element={<AddBook />} />
-        <Route path="/edit/:id" element={<EditBook />} />
-      </Routes>
-    </div>
-  )
-}
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<RegistrationForm />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/addbook"
+        element={
+          <ProtectedRoute>
+            <AddBook />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/edit/:id"
+        element={
+          <ProtectedRoute>
+            <EditBook />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/editprofile"
+        element={
+          <ProtectedRoute>
+            <EditProfile />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+};
 
-export default UserRoutes
+export default UserRoutes;

@@ -21,7 +21,8 @@ const upload = multer({ storage: storage });
 
 router.post("/register", user_controller.registerUser );
 router.post("/login", user_controller.userLogin );
-
+router.get("/profile",authenticateUser,user_controller.getUserProfile);
+router.put("/editprofile", authenticateUser, user_controller.updateUserProfile);
 router.get("/allbooks", authenticateUser, booksController.getAllBooks);
 
 router.get("/books/:id", authenticateUser, booksController.getBookById);
@@ -31,9 +32,4 @@ router.post("/createBook", authenticateUser, upload.single("bookImage"), booksCo
 router.put("/books/:id", authenticateUser, upload.single("bookImage"), booksController.updateBook);
 
 router.delete("/deletebooks/:id", authenticateUser, booksController.deleteBook);
-// router.post("/books", upload.single("bookImage"), booksController.createBook);
-router.get("/", (req, res) => {
-  res.send("Welcome to the User Route");
-});
-
 module.exports = router;

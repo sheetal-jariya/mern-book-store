@@ -1,94 +1,108 @@
 const User = require("../models/userModel");
-const config=require("../config/config")
-const bcryptjs = require('bcryptjs');
+const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const config = require("../config/config");
 
-exports.uploadFile = (req, res) => {
-	res.send("File uploaded successfully!");
-};
 const securePassword = async (password) => {
-	try {
-		const passwordHash = await bcryptjs.hash(password, 10);
-		return passwordHash;
-	} catch (error) {
-		console.log("error", error);
-	}
-}
+  try {
+    const passwordHash = await bcryptjs.hash(password, 10);
+    return passwordHash;
+  } catch (error) {
+    console.log("Hashing error", error);
+  }
+};
+
+const create_token = (id) => {
+  try {
+    return jwt.sign({ _id: id }, config.secret_jwt, { expiresIn: "1d" });
+  } catch (error) {
+    throw new Error("Token creation failed");
+  }
+};
+
+// Register user
 const registerUser = async (req, res) => {
-	const { name, email, password, mobile, address } = req.body;
-	try {
-		const userData = await User.findOne({ email: email });
-		if (userData) {
-			return res.status(200).send({ success: false, message: "User already exists" });
-		}
-		// Hash the password
-		const spassword = await securePassword(password);
-		const user = new User({
-			name,
-			email,
-			password: spassword,
-			mobile,
-			address,
-		});
-		const savedUser = await user.save();
-		res.status(200).send({ success: true, data: savedUser });
-	} catch (error) {
-		res.status(400).send({ success: false, message: error.message });
-	}
-}
+  const { name, email, password, confirmPassword, mobile, address } = req.body;
 
-const create_token = async (id) => {
-	try {
-		const token = await jwt.sign({ _id: id }, config.secret_jwt);
-		return token
-	} catch (error) {
-		res.status(400).send(error.message, "error in create token");
-	}
-}
+  try {
+    const userData = await User.findOne({ email });
+    if (userData) return res.status(200).send({ success: false, message: "User already exists" });
+    if (password !== confirmPassword)
+      return res.status(400).send({ success: false, message: "Passwords do not match" });
+
+    const hashedPassword = await securePassword(password);
+
+    const newUser = new User({ name, email, password: hashedPassword, mobile, address });
+    const savedUser = await newUser.save();
+
+    res.status(200).send({ success: true, data: savedUser });
+  } catch (error) {
+    res.status(400).send({ success: false, message: error.message });
+  }
+};
+
+// Login user
 const userLogin = async (req, res) => {
-	const email = req.body.email;
-	const password = req.body.password;
-	const userData = await User.findOne({ email: email });
+  const { email, password } = req.body;
 
-	try {
-if (userData) {
-	const passwordMatch = await bcryptjs.compare(password, userData.password);
-	if (passwordMatch) {
-		const tokenData = await create_token(userData.id);
-			const userResult = {
-				 _id: userData._id,
-				name: userData.name,
-				email: userData.email,
-				password: userData.password,
-				mobile: userData.mobile,
-				token: tokenData,
-				address: userData.address
-			}
+  try {
+    const userData = await User.findOne({ email });
+    if (!userData) return res.status(200).send({ success: false, msg: "Login details incorrect" });
 
-			const response = {
-				success: true,
-				message: "login successfully",
-				data: userResult
-			}
+    const isMatch = await bcryptjs.compare(password, userData.password);
+    if (!isMatch) return res.status(200).send({ success: false, msg: "Login details incorrect" });
 
-			res.status(200).send(response,"cmsggggg")
-		}
-		else {
-			res.status(200).send({ success: false, msg: "login details are incorrect" })
-		}
+    const token = create_token(userData._id);
 
-	}
-	 else {
-      res
-        .status(200)
-        .send({ success: false, msg: "login details are incorrect.." });
+    const userResult = {
+      _id: userData._id,
+      name: userData.name,
+      email: userData.email,
+      mobile: userData.mobile,
+      address: userData.address,
+      token: token
+    };
+
+    res.status(200).send({ success: true, message: "Login successfully", data: userResult });
+  } catch (error) {
+    res.status(400).send({ success: false, message: error.message });
+  }
+};
+
+// Get profile (user is attached by middleware)
+const getUserProfile = async (req, res) => {
+  try {
+    const user = req.user; // Already full user object (set by middleware)
+    res.status(200).send({ success: true, data: user });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  }
+};
+const updateUserProfile = async (req, res) => {
+  try {
+    const { name, mobile, address } = req.body;
+    const userId = req.user._id;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { name, mobile, address },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
-	} catch (error) {
- res.status(400).send(error.message,"error in login ....");
-	}
-}
+
+    res.status(200).json({ success: true, message: "Profile updated successfully", data: updatedUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 module.exports = {
-	registerUser,
-	userLogin
-}
+  registerUser,
+  userLogin,
+  getUserProfile,
+  updateUserProfile
+};

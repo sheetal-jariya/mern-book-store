@@ -30,7 +30,7 @@ const createBook = async (req, res) => {
       bookName,
       bookAuthor,
       bookPrice,
-      bookImage: `/uploads/${bookImage}`, // Save path
+      bookImage: `/uploads/${bookImage}`,
     });
 
     await newBook.save();
