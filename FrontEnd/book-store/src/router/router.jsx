@@ -1,12 +1,14 @@
 import { Routes, Route } from "react-router-dom";
-import Login from "../pages/Login";
+import Login from "../pages/login";
 import RegistrationForm from "../pages/Registration";
 import Dashboard from "../pages/dashboard";
 import AddBook from "../pages/AddBook";
 import EditBook from "../pages/EditBook";
 import Profile from "../pages/Profile";
 import EditProfile from "../pages/EditProfile";
-import ProtectedRoute from "../router/ProtectedRoute"; // 👈 import this
+import ProtectedRoute from "../router/ProtectedRoute";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
 
 const UserRoutes = () => {
   return (
@@ -51,6 +53,18 @@ const UserRoutes = () => {
           <ProtectedRoute>
             <EditProfile />
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+            <ForgotPassword />
+        }
+      />
+       <Route
+        path="/reset-password"
+        element={
+            <ResetPassword />
         }
       />
     </Routes>

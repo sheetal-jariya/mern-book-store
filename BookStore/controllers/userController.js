@@ -2,7 +2,9 @@ const User = require("../models/userModel");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("../config/config");
+const nodemailer = require('nodemailer');
 
+let otpStore = {};
 const securePassword = async (password) => {
   try {
     const passwordHash = await bcryptjs.hash(password, 10);
@@ -72,7 +74,7 @@ const userLogin = async (req, res) => {
 // Get profile (user is attached by middleware)
 const getUserProfile = async (req, res) => {
   try {
-    const user = req.user; // Already full user object (set by middleware)
+    const user = req.user;
     res.status(200).send({ success: true, data: user });
   } catch (error) {
     res.status(500).send({ success: false, message: error.message });
@@ -99,10 +101,70 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+const forgotPasswordController = async (req, res) => {
+  const { email } = req.body;
 
+  try {
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(404).json({ success: false, message: "Email not found" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[email] = otp;
+
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      }
+    });
+
+    await transporter.sendMail({
+      from: "sheetaljariya2214@gmail.com",
+      to: email,
+      subject: "Your OTP for Password Reset",
+      text: `Your OTP is ${otp}`,
+    });
+
+    console.log("OTP sent to:", email, "| OTP:", otp);
+    res.json({ success: true, message: "OTP sent to your email" });
+
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+const resetPasswordController=async(req,res)=>{
+  try {
+    const{email,newPassword,otp}=req.body;
+    if (!email || !otp|| !newPassword) {
+      return res.status(400).json({success:false,message:"All fileds are required!"});
+    }
+    const userData=await User.findOne({email});
+    if (!userData) {
+      return res.status(404).json({success:false,message:"User not found!"})
+    }
+    if (otpStore[email] !== otp) {
+      return res.status(400).json({success:false,message:"Invalid OTP"});
+    }
+    const hashedPassword = await bcryptjs.hash(newPassword,10);
+    userData.password=hashedPassword;
+    await userData.save();
+    delete otpStore[email];
+    res.status(200).json({success:true,message:"Password reset successfully"})
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+}
 module.exports = {
   registerUser,
   userLogin,
   getUserProfile,
-  updateUserProfile
+  updateUserProfile,
+  forgotPasswordController,
+  resetPasswordController
 };
