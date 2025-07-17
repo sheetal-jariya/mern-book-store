@@ -7,26 +7,29 @@ import { toast } from "react-toastify";
 const Dashboard = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [nameFilter, setNameFilter] = useState("");
+  const [authorFilter, setAuthorFilter] = useState("");
+  const [priceFilter, setPriceFilter] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-  const fetchBooks = async () => {
-    try {
-      const res = await axios.get("http://localhost:8080/api/allbooks", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      setBooks(res.data.data);
-    } catch (error) {
-      toast.error("Failed to fetch books.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchBooks = async () => {
+      try {
+        const res = await axios.get("http://localhost:8080/api/allbooks", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setBooks(res.data.data);
+      } catch (error) {
+        toast.error("Failed to fetch books.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchBooks();
-}, []);
+    fetchBooks();
+  }, []);
 
   const handleDelete = async (id) => {
     const token = localStorage.getItem("token");
@@ -45,6 +48,17 @@ const Dashboard = () => {
     navigate(`/edit/${bookId}`);
   };
 
+  const filteredBooks = books
+    .filter((book) =>
+      book.bookName.toLowerCase().includes(nameFilter.toLowerCase())
+    )
+    .filter((book) =>
+      book.bookAuthor.toLowerCase().includes(authorFilter.toLowerCase())
+    )
+    .filter((book) =>
+      priceFilter === "" || Number(book.bookPrice) <= Number(priceFilter)
+    );
+
   return (
     <>
       <Navbar />
@@ -59,7 +73,30 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {books.length > 0 ? (
+        {/*Filters */}
+        <div className="flex flex-wrap gap-4 mb-6">
+          <input
+            type="text"
+            placeholder="Search by Book Name"
+            className="px-4 py-2 border rounded-md w-full sm:w-60"
+            onChange={(e) => setNameFilter(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Search by Author"
+            className="px-4 py-2 border rounded-md w-full sm:w-60"
+            onChange={(e) => setAuthorFilter(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Max Price"
+            className="px-4 py-2 border rounded-md w-full sm:w-60"
+            onChange={(e) => setPriceFilter(e.target.value)}
+          />
+        </div>
+
+        {/* Table */}
+        {filteredBooks.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
               <thead className="bg-gray-100">
@@ -73,7 +110,7 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {books.map((book) => (
+                {filteredBooks.map((book) => (
                   <tr key={book._id} className="border-b hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <img
@@ -107,7 +144,9 @@ const Dashboard = () => {
             </table>
           </div>
         ) : (
-          <p className="text-gray-600 mt-6">No books available.</p>
+          <p className="text-gray-600 mt-6">
+            {loading ? "Loading books..." : "No books available or match filters."}
+          </p>
         )}
       </div>
     </>

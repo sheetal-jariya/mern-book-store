@@ -69,6 +69,9 @@ button:focus-visible {
 
 
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body, html, #root {
   margin: 0;
