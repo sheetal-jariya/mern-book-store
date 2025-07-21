@@ -21,11 +21,13 @@ const Login = () => {
         email,
         password,
       });
-
+console.log(res.data,"================")
       const token = res?.data?.data?.token;
-
+const role = res?.data?.data?.role;
+console.log(role,"-----")
       if (token) {
         localStorage.setItem("token", token);
+        localStorage.setItem("role", role);
         toast.success("✅ Login successful!");
         navigate("/dashboard");
       } else {

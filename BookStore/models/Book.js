@@ -17,5 +17,5 @@ const books=mongoose.Schema({
         type:String
     }
 })
-const book=mongoose.model("books",books)
-module.exports=book
+const Book=mongoose.model("Book",books)
+module.exports=Book

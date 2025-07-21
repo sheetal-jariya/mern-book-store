@@ -11,6 +11,7 @@ const RegistrationForm = () => {
     confirmPassword: "",
     mobile: "",
     address: "",
+    role: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -36,7 +37,7 @@ const RegistrationForm = () => {
 
     if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
-
+    if (!formData.role) newErrors.role = "Please select a role";
     return newErrors;
   };
 
@@ -60,6 +61,7 @@ const RegistrationForm = () => {
       const res = await axios.post("http://localhost:8080/api/register", formData);
 
       if (res.data.success) {
+        console.log(res.data,"======register user==")
         toast.success("🎉 Registration successful!");
         setFormData({
           name: "",
@@ -68,6 +70,7 @@ const RegistrationForm = () => {
           confirmPassword: "",
           mobile: "",
           address: "",
+            role: "",
         });
         setTimeout(() => navigate("/login"), 1500);
       } else {
@@ -110,6 +113,34 @@ const RegistrationForm = () => {
             {errors[name] && <p className="text-red-500 text-sm mt-1">{errors[name]}</p>}
           </div>
         ))}
+        <div className="mb-4">
+          <label className="block font-medium text-gray-700 mb-1">Select Role</label>
+          <div className="flex items-center space-x-6">
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                name="role"
+                value="user"
+                checked={formData.role === "user"}
+                onChange={handleChange}
+                className="form-radio text-orange-500"
+              />
+              <span className="ml-2 text-gray-700">User</span>
+            </label>
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                name="role"
+                value="admin"
+                checked={formData.role === "admin"}
+                onChange={handleChange}
+                className="form-radio text-orange-500"
+              />
+              <span className="ml-2 text-gray-700">Admin</span>
+            </label>
+          </div>
+          {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
+        </div>
 
         <button
           type="submit"

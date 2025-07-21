@@ -28,7 +28,7 @@ const Navbar = () => {
         </ul>
 
         <div className="flex items-center gap-3">
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
           <button
             onClick={handleLogout}
             className="bg-white dark:bg-gray-100 text-orange-500 px-3 py-1 rounded-md text-sm font-medium hover:bg-orange-100 transition"

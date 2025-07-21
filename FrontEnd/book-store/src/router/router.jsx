@@ -9,6 +9,7 @@ import EditProfile from "../pages/EditProfile";
 import ProtectedRoute from "../router/ProtectedRoute";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+import CartPage from "../pages/CartPage";
 
 const UserRoutes = () => {
   return (
@@ -65,6 +66,12 @@ const UserRoutes = () => {
         path="/reset-password"
         element={
             <ResetPassword />
+        }
+      />
+ <Route
+        path="/cart"
+        element={
+            <CartPage />
         }
       />
     </Routes>

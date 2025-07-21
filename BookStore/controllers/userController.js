@@ -16,7 +16,7 @@ const securePassword = async (password) => {
 
 const create_token = (id) => {
   try {
-    return jwt.sign({ _id: id }, config.secret_jwt, { expiresIn: "1d" });
+    return jwt.sign({ _id: id ,role: User.role}, config.secret_jwt, { expiresIn: "1d" });
   } catch (error) {
     throw new Error("Token creation failed");
   }
@@ -24,6 +24,8 @@ const create_token = (id) => {
 
 // Register user
 const registerUser = async (req, res) => {
+  const role = req.body.role || 'user';
+  console.log(role,"------role")
   const { name, email, password, confirmPassword, mobile, address } = req.body;
 
   try {
@@ -34,7 +36,7 @@ const registerUser = async (req, res) => {
 
     const hashedPassword = await securePassword(password);
 
-    const newUser = new User({ name, email, password: hashedPassword, mobile, address });
+    const newUser = new User({ name, email, password: hashedPassword, mobile, address,role });
     const savedUser = await newUser.save();
 
     res.status(200).send({ success: true, data: savedUser });
@@ -62,7 +64,8 @@ const userLogin = async (req, res) => {
       email: userData.email,
       mobile: userData.mobile,
       address: userData.address,
-      token: token
+      token: token,
+       role: userData.role,
     };
 
     res.status(200).send({ success: true, message: "Login successfully", data: userResult });
